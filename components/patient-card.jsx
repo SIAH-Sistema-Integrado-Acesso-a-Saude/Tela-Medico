@@ -27,13 +27,15 @@ import { useState, useEffect } from "react";
 
 export function PatientCard({ patient, triages, consultations }) {
   const age = calculateAge(patient.data_nascimento);
-  const latestTriage = triages.length > 0 ? triages[triages.length - 1] : null;
-  const bmi = latestTriage
-    ? calculateBMI(latestTriage.peso, latestTriage.altura)
+  const firstTriage = triages && triages.length > 0 ? triages[0] : null;
+  const firstConsultation = consultations && consultations.length > 0 ? consultations[0] : null;
+  const bmi = firstTriage
+    ? calculateBMI(firstTriage.peso, firstTriage.altura)
     : "N/A";
   const bmiCategory = getBMICategory(bmi);
 
   // Estado para armazenar o resumo da IA
+  const [avatarFoto, setAvatarFoto] = useState(null)
   const [resumo, setResumo] = useState("");
   const [loadingResumo, setLoadingResumo] = useState(false);
   const [erroResumo, setErroResumo] = useState("");
@@ -57,6 +59,17 @@ export function PatientCard({ patient, triages, consultations }) {
     fetchResumo();
   }, [patient, triages, consultations]);
 
+  useEffect(() => {
+    if(patient.images?.length > 0){
+      const supabaseBaseUrl = "https://bngwnknyxmhkeesoeizb.supabase.co/storage/v1/object/public/faces"
+      const imageUrl = `${supabaseBaseUrl}/${patient.images[0]}`
+      console.log(imageUrl);
+      setAvatarFoto(imageUrl)
+    }
+  })
+
+  
+
   return (
     <main>
       {/* Patient Information */}
@@ -65,7 +78,7 @@ export function PatientCard({ patient, triages, consultations }) {
           <div className="flex flex-line items-center text-left">
             <Avatar className="h-20 w-20 ring-3 mr-6 ring-primary/10">
               <AvatarImage
-                src={patient.foto_rosto_link || "/placeholder.svg"}
+                src={avatarFoto || "/placeholder.svg"}
                 alt={patient.nome}
               />
             </Avatar>
@@ -92,7 +105,7 @@ export function PatientCard({ patient, triages, consultations }) {
             </h2>
           </CardHeader>
           <CardContent className="px-6">
-            <p>{latestTriage ? latestTriage.pressao_arterial : "N/A"}</p>
+            <p>{firstTriage ? firstTriage.pressao_arterial : "N/A"}</p>
           </CardContent>
         </Card>
 
@@ -102,7 +115,7 @@ export function PatientCard({ patient, triages, consultations }) {
             <h2 className="text-bold font-bold text-foreground">Temperatura</h2>
           </CardHeader>
           <CardContent className="px-6">
-            <p>{latestTriage ? latestTriage.temperatura : "N/A"}</p>
+            <p>{firstTriage ? firstTriage.temperatura : "N/A"}</p>
           </CardContent>
         </Card>
 
@@ -114,7 +127,7 @@ export function PatientCard({ patient, triages, consultations }) {
             </h2>
           </CardHeader>
           <CardContent className="px-6">
-            <p>{latestTriage ? latestTriage.frequencia_cardiaca : "N/A"} bpm</p>
+            <p>{firstTriage ? firstTriage.frequencia_cardiaca : "N/A"} bpm</p>
           </CardContent>
         </Card>
 
@@ -153,12 +166,15 @@ export function PatientCard({ patient, triages, consultations }) {
           <div className="pb-4 border-b border-border">
             <CardHeader>
               <h2 className="text-bold font-bold text-foreground">
-                Queixa Principal
+                Ultima Consulta {firstConsultation ? `- ${new Date(firstConsultation.data_consulta).toLocaleDateString("pt-BR")}` : ""}
               </h2>
             </CardHeader>
           </div>
           <CardContent className="px-6">
-            <p>{patient.prontuario}</p>
+            <p className="text-lg"><b>Motivo:</b> {firstConsultation ? firstConsultation.motivo_consulta : "N/A"}</p>
+            <p className="text-lg"><b>Diagnóstico:</b> {firstConsultation ? firstConsultation.diagnostico : "N/A"}</p>
+            <p className="text-lg"><b>Prescrição:</b> {firstConsultation ? firstConsultation.prescricao : "N/A"}</p>
+            <p className="text-lg"><b>Observações:</b> {firstConsultation ? firstConsultation.anotacoes_medicas : "N/A"}</p>
           </CardContent>
         </Card>
       </section>

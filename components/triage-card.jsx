@@ -310,7 +310,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
               <CardHeader className="pb-3 bg-muted/30">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg text-foreground">
-                    Triagem #{triage.id}
+                    Triagem
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 text-primary" />

@@ -37,8 +37,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
     frequencia_cardiaca: "",
     peso: "",
     altura: "",
-    sintomas_principais: "",
-    observacoes_enfermagem: "",
+    queixa_principal: "",
     data_hora_triagem: "",
   });
 
@@ -64,8 +63,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
         frequencia_cardiaca: "",
         peso: "",
         altura: "",
-        sintomas_principais: "",
-        observacoes_enfermagem: "",
+        queixa_principal: "",
         data_hora_triagem: "",
       });
 
@@ -73,7 +71,6 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
       setIsOpen(false);
       alert("Triagem cadastrada com sucesso!");
-
     } catch (error) {
       console.error("Erro ao cadastrar triagem:", error);
       alert("Erro ao cadastrar triagem. Tente novamente.");
@@ -104,7 +101,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
   };
 
   const formatarTemperatura = (valor) => {
-  // Remove tudo que não for número
+    // Remove tudo que não for número
     valor = valor.replace(/\D/g, "");
     // Limita a 3 dígitos (ex: 365 → 36.5)
     valor = valor.slice(0, 3);
@@ -155,7 +152,10 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     value={formData.pressao_arterial}
                     onChange={(e) => {
                       const formatado = formatarPressaoArterial(e.target.value);
-                      setFormData(prev => ({ ...prev, pressao_arterial: formatado }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        pressao_arterial: formatado,
+                      }));
                     }}
                     required
                   />
@@ -174,7 +174,10 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     value={formData.temperatura}
                     onChange={(e) => {
                       const formatado = formatarTemperatura(e.target.value);
-                      setFormData(prev => ({ ...prev, temperatura: formatado }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        temperatura: formatado,
+                      }));
                     }}
                     required
                   />
@@ -252,31 +255,15 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
               {/* Sintomas Principais */}
               <div className="space-y-2">
-                <Label htmlFor="sintomas_principais">
+                <Label htmlFor="queixa_principal">
                   <FileText className="inline h-4 w-4 mr-1 text-primary" />
-                  Sintomas Principais
+                  Queixa Principal
                 </Label>
                 <Textarea
-                  id="sintomas_principais"
-                  name="sintomas_principais"
+                  id="queixa_principal"
+                  name="queixa_principal"
                   placeholder="Descreva os sintomas principais do paciente..."
-                  value={formData.sintomas_principais}
-                  onChange={handleInputChange}
-                  rows={3}
-                />
-              </div>
-
-              {/* Observações de Enfermagem */}
-              <div className="space-y-2">
-                <Label htmlFor="observacoes_enfermagem">
-                  <FileText className="inline h-4 w-4 mr-1 text-primary" />
-                  Observações de Enfermagem
-                </Label>
-                <Textarea
-                  id="observacoes_enfermagem"
-                  name="observacoes_enfermagem"
-                  placeholder="Observações gerais sobre o estado do paciente..."
-                  value={formData.observacoes_enfermagem}
+                  value={formData.queixa_principal}
                   onChange={handleInputChange}
                   rows={3}
                 />
@@ -403,7 +390,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Sintomas Principais
                       </p>
                       <p className="text-sm text-foreground">
-                        {triage.sintomas_principais}
+                        {triage.queixa_principal}
                       </p>
                     </div>
                   </div>

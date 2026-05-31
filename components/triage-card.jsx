@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,14 +23,43 @@ import {
   Ruler,
   FileText,
   Clock,
+  Search,
 } from "lucide-react";
 import { calculateBMI, getBMICategory, formatDateTime } from "@/lib/mock-data";
 import { criarTriagem } from "@/lib/triagens";
+import { useEntityForm } from "@/hooks/useEntityForm";
 
 export function TriageCard({ patient, triages, reloadTriages }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      reloadTriages(searchQuery);
+    }, 1200); // aguarda 400ms após o usuário parar de digitar
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  const formatarPressaoArterial = (valor) => {
+    valor = valor.replace(/\D/g, "");
+    valor = valor.slice(0, 6);
+    if (valor.length > 3) {
+      valor = valor.slice(0, 3) + "/" + valor.slice(3);
+    }
+    return valor;
+  };
+
+  const formatarTemperatura = (valor) => {
+    valor = valor.replace(/\D/g, "");
+    valor = valor.slice(0, 3);
+    if (valor.length > 2) {
+      valor = valor.slice(0, 2) + "." + valor.slice(2);
+    }
+    return valor;
+  };
+
+  const initialValues = {
     id_usuario: patient.id,
     pressao_arterial: "",
     temperatura: "",
@@ -39,86 +68,32 @@ export function TriageCard({ patient, triages, reloadTriages }) {
     altura: "",
     queixa_principal: "",
     data_hora_triagem: "",
-  });
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const triagemData = {
-        ...formData,
-        frequencia_cardiaca: Number.parseInt(formData.frequencia_cardiaca),
-        peso: Number.parseFloat(formData.peso),
-        altura: Number.parseFloat(formData.altura),
-      };
-
-      await criarTriagem(triagemData);
-
-      // Reset form
-      setFormData({
-        id_usuario: patient.id,
-        pressao_arterial: "",
-        temperatura: "",
-        frequencia_cardiaca: "",
-        peso: "",
-        altura: "",
-        queixa_principal: "",
-        data_hora_triagem: "",
-      });
-
+  const {
+    formData,
+    setFormData,
+    handleInputChange,
+    handleSubmit,
+    isSubmitting,
+  } = useEntityForm({
+    initialValues,
+    onSubmit: (data) =>
+      criarTriagem({
+        ...data,
+        frequencia_cardiaca: parseInt(data.frequencia_cardiaca),
+        peso: parseFloat(data.peso),
+        altura: parseFloat(data.altura),
+      }),
+    onSuccess: async () => {
       await reloadTriages();
-
       setIsOpen(false);
-      alert("Triagem cadastrada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao cadastrar triagem:", error);
-      alert("Erro ao cadastrar triagem. Tente novamente.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const formatarPressaoArterial = (valor) => {
-    // Remove tudo que não for número
-    valor = valor.replace(/\D/g, "");
-    // Limita a 6 dígitos (3 para sistólica + 3 para diastólica)
-    valor = valor.slice(0, 6);
-    // Se houver mais de 3 dígitos, insere a barra
-    if (valor.length > 3) {
-      valor = valor.slice(0, 3) + "/" + valor.slice(3);
-    }
-    // Se já houver diastólica completa, adiciona " mmHg"
-    if (valor.length > 4) {
-      valor = valor + " mmHg";
-    }
-    return valor;
-  };
-
-  const formatarTemperatura = (valor) => {
-    // Remove tudo que não for número
-    valor = valor.replace(/\D/g, "");
-    // Limita a 3 dígitos (ex: 365 → 36.5)
-    valor = valor.slice(0, 3);
-    // Se houver mais de 2 dígitos, insere a vírgula decimal
-    if (valor.length > 2) {
-      valor = valor.slice(0, 2) + "." + valor.slice(2);
-    }
-    // Se já houver decimal completo, adiciona "°C"
-    if (valor.length >= 4) {
-      valor = valor + "°C";
-    }
-    return valor;
-  };
+    },
+  });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-3 mb-2">
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -148,14 +123,13 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                   <Input
                     id="pressao_arterial"
                     name="pressao_arterial"
-                    placeholder="140/90 mmHg"
+                    placeholder="120/80"
                     value={formData.pressao_arterial}
                     onChange={(e) => {
                       const formatado = formatarPressaoArterial(e.target.value);
-                      setFormData((prev) => ({
-                        ...prev,
-                        pressao_arterial: formatado,
-                      }));
+                      handleInputChange({
+                        target: { name: "pressao_arterial", value: formatado },
+                      });
                     }}
                     required
                   />
@@ -174,10 +148,9 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     value={formData.temperatura}
                     onChange={(e) => {
                       const formatado = formatarTemperatura(e.target.value);
-                      setFormData((prev) => ({
-                        ...prev,
-                        temperatura: formatado,
-                      }));
+                      handleInputChange({
+                        target: { name: "temperatura", value: formatado },
+                      });
                     }}
                     required
                   />
@@ -253,7 +226,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                 </div>
               </div>
 
-              {/* Sintomas Principais */}
+              {/* Queixa Principal */}
               <div className="space-y-2">
                 <Label htmlFor="queixa_principal">
                   <FileText className="inline h-4 w-4 mr-1 text-primary" />
@@ -284,6 +257,16 @@ export function TriageCard({ patient, triages, reloadTriages }) {
               </div>
             </form>
           </DialogContent>
+
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Pesquisar exames..."
+              className="bg-white pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </Dialog>
       </div>
 
@@ -387,7 +370,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground mb-1">
-                        Sintomas Principais
+                        Queixa Principal
                       </p>
                       <p className="text-sm text-foreground">
                         {triage.queixa_principal}
@@ -395,24 +378,26 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Observações de Enfermagem
-                      </p>
-                      <p className="text-sm text-foreground">
-                        {triage.observacoes_enfermagem}
-                      </p>
+                  {triage.observacoes_enfermagem && (
+                    <div className="flex items-start gap-3">
+                      <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          Observações de Enfermagem
+                        </p>
+                        <p className="text-sm text-foreground">
+                          {triage.observacoes_enfermagem}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
           );
         })
       ) : (
-        <p className="text-xm text-muted-foreground pt-4">
+        <p className="text-sm text-muted-foreground pt-4">
           Paciente não possui triagens cadastradas.
         </p>
       )}

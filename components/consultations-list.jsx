@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   ChevronUp,
   FileText,
   Pill,
+  Search,
 } from "lucide-react";
 import { formatDateTime } from "@/lib/mock-data";
 import { criarConsulta } from "@/lib/consultas";
@@ -26,17 +27,29 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useEntityForm } from "@/hooks/useEntityForm";
 
-export function ConsultationsList({ patient, consultations, reloadConsultations }) {
+export function ConsultationsList({
+  patient,
+  consultations,
+  reloadConsultations,
+}) {
   const [expandedId, setExpandedId] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [profissionais, setProfissionais] = useState([]);
   const [hospitais, setHospitais] = useState([]);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  const [formData, setFormData] = useState({
+  const initialValues = {
     id_usuario: patient.id,
     id_profissional: "",
     id_hospital: "",
@@ -45,88 +58,58 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
     diagnostico: "",
     prescricao: "",
     anotacoes_medicas: "",
+  };
+
+  const {
+    formData,
+    handleInputChange,
+    handleSelectChange,
+    handleSubmit,
+    isSubmitting,
+  } = useEntityForm({
+    initialValues,
+    onSubmit: (data) => criarConsulta(data),
+    onSuccess: async () => {
+      await reloadConsultations();
+      setIsDialogOpen(false);
+    },
   });
 
   useEffect(() => {
-    if (isDialogOpen) {
-      loadData()
-    }
-  }, [isDialogOpen])
+    const timeout = setTimeout(() => {
+      reloadConsultations(searchQuery);
+    }, 1200); // aguarda 400ms após o usuário parar de digitar
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (isDialogOpen) loadData();
+  }, [isDialogOpen]);
 
   const loadData = async () => {
-    setIsLoading(true)
+    setIsLoadingData(true);
     try {
-          const [profsData, hospsData] = await Promise.all([
-      listarProfissionais(),
-      listarHospitais()
-    ]);
-
-    setProfissionais(Array.isArray(profsData) ? profsData : []);
-    setHospitais(Array.isArray(hospsData) ? hospsData : []);
-
+      const [profsData, hospsData] = await Promise.all([
+        listarProfissionais(),
+        listarHospitais(),
+      ]);
+      setProfissionais(Array.isArray(profsData) ? profsData : []);
+      setHospitais(Array.isArray(hospsData) ? hospsData : []);
     } catch (error) {
-      console.error("Erro ao carregar dados:", error)
+      console.error("Erro ao carregar dados:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoadingData(false);
     }
-  }
+  };
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await criarConsulta(formData);
-
-      // Reset form
-      setFormData({
-        id_usuario: patient.id,
-        id_profissional: "",
-        id_hospital: "",
-        data_consulta: "",
-        motivo_consulta: "",
-        diagnostico: "",
-        prescricao: "",
-        anotacoes_medicas: "",
-      });
-      
-      await reloadConsultations();
-
-      // Close dialog
-      setIsDialogOpen(false);
-
-      // You might want to refresh the consultations list here
-      alert("Consulta criada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar consulta:", error);
-      alert("Erro ao criar consulta. Tente novamente.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center gap-3 mb-2">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
@@ -137,6 +120,7 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
               Adicionar +
             </Button>
           </DialogTrigger>
+
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Cadastrar Nova Consulta</DialogTitle>
@@ -148,12 +132,19 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
                   <Label htmlFor="id_profissional">Profissional *</Label>
                   <Select
                     value={formData.id_profissional}
-                    onValueChange={(value) => handleSelectChange("id_profissional", value)}
-                    disabled={isLoading}
-                    className="max-w-60"
+                    onValueChange={(value) =>
+                      handleSelectChange("id_profissional", value)
+                    }
+                    disabled={isLoadingData}
                   >
-                    <SelectTrigger className="w-55">
-                      <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione um profissional"} />
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          isLoadingData
+                            ? "Carregando..."
+                            : "Selecione um profissional"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {profissionais.map((prof) => (
@@ -169,12 +160,19 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
                   <Label htmlFor="id_hospital">Hospital *</Label>
                   <Select
                     value={formData.id_hospital}
-                    onValueChange={(value) => handleSelectChange("id_hospital", value)}
-                    disabled={isLoading}
-                    className="max-w-60"
+                    onValueChange={(value) =>
+                      handleSelectChange("id_hospital", value)
+                    }
+                    disabled={isLoadingData}
                   >
-                    <SelectTrigger className="w-55">
-                      <SelectValue placeholder={isLoading ? "Carregando..." : "Selecione um profissional"} />
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          isLoadingData
+                            ? "Carregando..."
+                            : "Selecione um hospital"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {hospitais.map((hospital) => (
@@ -267,6 +265,16 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
             </form>
           </DialogContent>
         </Dialog>
+
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar consultas..."
+            className="bg-white pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       {consultations?.length > 0 ? (
@@ -381,8 +389,10 @@ export function ConsultationsList({ patient, consultations, reloadConsultations 
           </Card>
         ))
       ) : (
-        <p className="text-xm text-muted-foreground pt-4">
-          Paciente não possui consultas cadastradas.
+        <p className="text-sm text-muted-foreground pt-4">
+          {searchQuery
+            ? "Nenhuma consulta encontrada para a pesquisa."
+            : "Paciente não possui consultas cadastradas."}
         </p>
       )}
     </div>

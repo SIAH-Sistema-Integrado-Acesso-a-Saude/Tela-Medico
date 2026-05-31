@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Syringe, Calendar, Package, MapPin, User } from "lucide-react";
+import { Syringe, Calendar, Package, MapPin, User, Search } from "lucide-react";
 import { formatDate } from "@/lib/mock-data";
 import { criarVacina } from "@/lib/vacinas";
 import { listarProfissionais } from "@/lib/profissionais";
 import { listarHospitais } from "@/lib/hospital";
-import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -26,16 +25,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEntityForm } from "@/hooks/useEntityForm";
 
-export function VaccinesList({ patient, vaccines, reloadVaccines }) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+export function VaccinesList({ patient, vaccines, reloadVacinas }) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [profissionais, setProfissionais] = useState([]);
   const [hospitais, setHospitais] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [formData, setFormData] = useState({
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      reloadVacinas(searchQuery);
+    }, 1200); // aguarda 400ms após o usuário parar de digitar
+
+    return () => clearTimeout(timeout);
+  }, [searchQuery]);
+
+  const initialValues = {
     id_usuario: patient.id,
     id_hospital: "",
     id_profissional: "",
@@ -43,88 +50,47 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
     data_aplicacao: "",
     dose: "",
     lote: "",
+  };
+
+  const {
+    formData,
+    handleInputChange,
+    handleSelectChange,
+    handleSubmit,
+    isSubmitting,
+  } = useEntityForm({
+    initialValues,
+    onSubmit: (data) => criarVacina(data),
+    onSuccess: async () => {
+      await reloadVacinas();
+      setIsDialogOpen(false);
+    },
   });
 
   useEffect(() => {
-    if (open) {
-      loadData();
-    }
-  }, [open]);
+    if (isDialogOpen) loadData();
+  }, [isDialogOpen]);
 
   const loadData = async () => {
-    setIsLoading(true);
+    setIsLoadingData(true);
     try {
       const [profsData, hospsData] = await Promise.all([
         listarProfissionais(),
         listarHospitais(),
       ]);
-
       setProfissionais(Array.isArray(profsData) ? profsData : []);
       setHospitais(Array.isArray(hospsData) ? hospsData : []);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingData(false);
     }
   };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      await criarVacina(formData);
-
-      toast({
-        title: "Sucesso!",
-        description: "Vacina cadastrada com sucesso.",
-      });
-
-      // Resetar formulário
-      setFormData({
-        id_usuario: patient.id,
-        id_hospital: "",
-        id_profissional: "",
-        nome_vacina: "",
-        data_aplicacao: "",
-        dose: "",
-        lote: "",
-      });
-
-      await reloadVaccines();
-
-      setOpen(false);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível cadastrar a vacina. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  console.log("VaccinesList vaccines:", vaccines);
-  console.log(hospitais);
-  console.log(profissionais);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-2">
-        <Dialog open={open} onOpenChange={setOpen}>
+      <div className="flex items-center gap-3 mb-2">
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="outline"
@@ -148,13 +114,12 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
                     onValueChange={(value) =>
                       handleSelectChange("id_profissional", value)
                     }
-                    disabled={isLoading}
-                    className="max-w-60"
+                    disabled={isLoadingData}
                   >
-                    <SelectTrigger className="w-55">
+                    <SelectTrigger className="w-full">
                       <SelectValue
                         placeholder={
-                          isLoading
+                          isLoadingData
                             ? "Carregando..."
                             : "Selecione um profissional"
                         }
@@ -177,15 +142,14 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
                     onValueChange={(value) =>
                       handleSelectChange("id_hospital", value)
                     }
-                    disabled={isLoading}
-                    className="max-w-60"
+                    disabled={isLoadingData}
                   >
-                    <SelectTrigger className="w-55">
+                    <SelectTrigger className="w-full">
                       <SelectValue
                         placeholder={
-                          isLoading
+                          isLoadingData
                             ? "Carregando..."
-                            : "Selecione um profissional"
+                            : "Selecione um hospital"
                         }
                       />
                     </SelectTrigger>
@@ -250,18 +214,28 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setOpen(false)}
-                  disabled={loading}
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Cadastrando..." : "Cadastrar Vacina"}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Cadastrando..." : "Cadastrar Vacina"}
                 </Button>
               </div>
             </form>
           </DialogContent>
         </Dialog>
+
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar vacinas..."
+            className="bg-white pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
       {vaccines?.length > 0 ? (
@@ -275,7 +249,9 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
                     {vaccine.nome_vacina}
                   </CardTitle>
                 </div>
-                <Badge variant="secondary">{vaccine.dose}</Badge>
+                {vaccine.dose && (
+                  <Badge variant="secondary">{vaccine.dose}</Badge>
+                )}
               </div>
             </CardHeader>
 
@@ -298,7 +274,7 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground mb-1">Lote</p>
                     <p className="text-sm font-medium text-foreground">
-                      {vaccine.lote}
+                      {vaccine.lote || "—"}
                     </p>
                   </div>
                 </div>
@@ -335,7 +311,7 @@ export function VaccinesList({ patient, vaccines, reloadVaccines }) {
           </Card>
         ))
       ) : (
-        <p className="text-xm text-muted-foreground pt-4">
+        <p className="text-sm text-muted-foreground pt-4">
           Paciente não possui vacinas cadastradas.
         </p>
       )}

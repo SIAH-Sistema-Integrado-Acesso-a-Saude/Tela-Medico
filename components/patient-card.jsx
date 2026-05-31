@@ -1,20 +1,14 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  AlertCircle,
-  NotebookText,
   Activity,
   Thermometer,
   Heart,
   HeartPulse,
+  Sparkles,
 } from "lucide-react";
 import {
   calculateBMI,
@@ -35,7 +29,6 @@ export function PatientCard({ patient, triages, consultations }) {
     : "N/A";
   const bmiCategory = getBMICategory(bmi);
 
-  // Estado para armazenar o resumo da IA
   const [avatarFoto, setAvatarFoto] = useState(null);
   const [resumo, setResumo] = useState("");
   const [loadingResumo, setLoadingResumo] = useState(false);
@@ -48,17 +41,13 @@ export function PatientCard({ patient, triages, consultations }) {
 
   useEffect(() => {
     async function fetchResumo() {
-      // 2. Tente pegar do cache logo no início do efeito (executa apenas no cliente)
       const cachedResumo = sessionStorage.getItem(
         `resumo_paciente_${patient.id}`,
       );
-
       if (cachedResumo) {
         setResumo(cachedResumo);
-        return; // Se achou no cache, para aqui
+        return;
       }
-
-      // 3. Se não houver cache, busca na IA
       setLoadingResumo(true);
       setErroResumo("");
       try {
@@ -66,7 +55,6 @@ export function PatientCard({ patient, triages, consultations }) {
         const resposta = await resumoIA(prontuario);
         const textoFinal =
           resposta.resposta || resposta || "Resumo não disponível";
-
         setResumo(textoFinal);
         sessionStorage.setItem(`resumo_paciente_${patient.id}`, textoFinal);
       } catch (err) {
@@ -79,35 +67,47 @@ export function PatientCard({ patient, triages, consultations }) {
     if (patient.id) {
       fetchResumo();
     }
-  }, [patient.id]); // Mude a dependência para o ID do paciente para evitar loops
+  }, [patient.id]);
 
   useEffect(() => {
     if (patient.images?.length > 0) {
       const supabaseBaseUrl =
         "https://bngwnknyxmhkeesoeizb.supabase.co/storage/v1/object/public/faces";
       const imageUrl = `${supabaseBaseUrl}/${patient.images[0]}`;
-      console.log(imageUrl);
       setAvatarFoto(imageUrl);
     }
   }, [patient.images]);
+
+  // Initials fallback for avatar
+  const initials = patient.nome
+    ? patient.nome
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "?";
 
   return (
     <main>
       {/* Patient Information */}
       <Card className="border-none shadow-md mb-5">
-        <CardContent className="px-6">
-          <div className="flex flex-line items-center text-left">
-            <Avatar className="h-20 w-20 ring-3 mr-6 ring-primary/10">
+        <CardContent className="px-6 pt-6">
+          <div className="flex items-center gap-6">
+            <Avatar className="h-20 w-20 ring-2 ring-primary/20">
               <AvatarImage
                 src={avatarFoto || "/placeholder.svg"}
                 alt={patient.nome}
               />
+              <AvatarFallback className="text-lg font-semibold bg-primary/10 text-primary">
+                {initials}
+              </AvatarFallback>
             </Avatar>
-            <div className="text-left">
-              <p className="text-bold font-bold text-foreground">
+            <div>
+              <p className="text-lg font-bold text-foreground">
                 {patient.nome}
               </p>
-              <p className="text-xs text-foreground">
+              <p className="text-xs text-muted-foreground">
                 {new Date(patient.data_nascimento).toLocaleDateString("pt-BR")}
               </p>
               <p className="text-sm font-medium text-foreground">{age} anos</p>
@@ -116,160 +116,224 @@ export function PatientCard({ patient, triages, consultations }) {
         </CardContent>
       </Card>
 
-      {/* Triage Information */}
+      {/* Triage Vitals */}
       <section className="flex flex-wrap gap-3 mb-5">
-        <Card className="flex-1 min-w-[200px] border-none shadow-md">
-          <CardHeader>
-            <HeartPulse className="h-6 w-6 text-primary" />
-            <h2 className="text-bold font-bold text-foreground">
+        <Card className="flex-1 min-w-[180px] border-none shadow-md">
+          <CardHeader className="pb-2">
+            <HeartPulse className="h-5 w-5 text-primary mb-1" />
+            <CardTitle className="text-sm font-semibold text-foreground">
               Pressão Arterial
-            </h2>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-6">
-            <p>{firstTriage ? firstTriage.pressao_arterial : "N/A"}</p>
+          <CardContent className="px-6 pb-4">
+            <p className="text-base font-medium">
+              {firstTriage ? firstTriage.pressao_arterial : "N/A"}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="flex-1 min-w-[200px] border-none shadow-md ">
-          <CardHeader>
-            <Thermometer className="h-6 w-6 text-primary" />
-            <h2 className="text-bold font-bold text-foreground">Temperatura</h2>
+        <Card className="flex-1 min-w-[180px] border-none shadow-md">
+          <CardHeader className="pb-2">
+            <Thermometer className="h-5 w-5 text-primary mb-1" />
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Temperatura
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-6">
-            <p>{firstTriage ? firstTriage.temperatura : "N/A"}</p>
+          <CardContent className="px-6 pb-4">
+            <p className="text-base font-medium">
+              {firstTriage ? firstTriage.temperatura : "N/A"}
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="flex-1 min-w-[200px] border-none shadow-md">
-          <CardHeader>
-            <Heart className="h-6 w-6 text-primary" />
-            <h2 className="text-bold font-bold text-foreground">
-              Frequência Cardíaca
-            </h2>
+        <Card className="flex-1 min-w-[180px] border-none shadow-md">
+          <CardHeader className="pb-2">
+            <Heart className="h-5 w-5 text-primary mb-1" />
+            <CardTitle className="text-sm font-semibold text-foreground">
+              Freq. Cardíaca
+            </CardTitle>
           </CardHeader>
-          <CardContent className="px-6">
-            <p>{firstTriage ? firstTriage.frequencia_cardiaca : "N/A"} bpm</p>
+          <CardContent className="px-6 pb-4">
+            <p className="text-base font-medium">
+              {firstTriage ? firstTriage.frequencia_cardiaca : "N/A"} bpm
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="flex-1 min-w-[200px] border-none shadow-md">
-          <CardHeader>
-            <Activity className="h-6 w-6 text-primary" />
-            <h2 className="text-bold font-bold text-foreground">IMC</h2>
+        <Card className="flex-1 min-w-[180px] border-none shadow-md">
+          <CardHeader className="pb-2">
+            <Activity className="h-5 w-5 text-primary mb-1" />
+            <CardTitle className="text-sm font-semibold text-foreground">
+              IMC
+            </CardTitle>
           </CardHeader>
-          <CardContent className="flex gap-3 px-6">
-            <p>{bmi}</p>
-            <Badge variant="secondary" className="text-xs">
-              {bmiCategory}
-            </Badge>
+          <CardContent className="px-6 pb-4 flex items-center gap-2">
+            <p className="text-base font-medium">{bmi}</p>
+            {bmiCategory && (
+              <Badge variant="secondary" className="text-xs">
+                {bmiCategory}
+              </Badge>
+            )}
           </CardContent>
         </Card>
       </section>
 
-      {/* Main complaint and Alerts Information */}
+      {/* Alerts & Last Consultation */}
       <section className="flex flex-wrap gap-3 mb-5">
         <Card className="flex-1 min-w-[200px] border-none shadow-md">
-          <div className="pb-4 border-b border-border">
+          <div className="pb-2 border-b border-border">
             <CardHeader>
-              <h2 className="text-bold font-bold text-foreground">Alertas</h2>
+              <CardTitle className="text-base font-bold text-foreground">
+                Alertas
+              </CardTitle>
             </CardHeader>
           </div>
-          <CardContent className="px-6">
+          <CardContent className="px-6 pt-4 space-y-2 text-sm">
             <div>
-              <b>Alertas: </b>
-              {patient.alergias}
+              <span className="font-semibold">Alergias: </span>
+              <span className="text-muted-foreground">
+                {patient.alergias || "Nenhuma"}
+              </span>
             </div>
             <div>
-              <b>Tipo Sanguíneo: </b>
-              {patient.tipo_sanguineo}
+              <span className="font-semibold">Tipo Sanguíneo: </span>
+              <span className="text-muted-foreground">
+                {patient.tipo_sanguineo || "—"}
+              </span>
             </div>
             <div>
-              <b>Condições Crônicas: </b>
-              {patient.condicoes_cronicas}
+              <span className="font-semibold">Condições Crônicas: </span>
+              <span className="text-muted-foreground">
+                {patient.condicoes_cronicas || "Nenhuma"}
+              </span>
             </div>
             <div>
-              <b>Medicamento em Uso: </b>
-              {patient.medicamentos_em_uso}
+              <span className="font-semibold">Medicamentos em Uso: </span>
+              <span className="text-muted-foreground">
+                {patient.medicamentos_em_uso || "Nenhum"}
+              </span>
             </div>
             <div>
-              <b>Possui Plano de Saúde: </b>
-              {patient.possui_plano_saude ? "SIM" : "NÃO"}
+              <span className="font-semibold">Plano de Saúde: </span>
+              <Badge
+                variant={patient.possui_plano_saude ? "default" : "secondary"}
+                className="text-xs ml-1"
+              >
+                {patient.possui_plano_saude ? "SIM" : "NÃO"}
+              </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="flex-2 min-w-[200px] border-none shadow-md ">
-          <div className="pb-4 border-b border-border">
+        <Card className="flex-2 min-w-[200px] border-none shadow-md">
+          <div className="pb-2 border-b border-border">
             <CardHeader>
-              <h2 className="text-bold font-bold text-foreground">
-                Ultima Consulta{" "}
-                {firstConsultation
-                  ? `- ${new Date(firstConsultation.data_consulta).toLocaleDateString("pt-BR")}`
-                  : ""}
-              </h2>
+              <CardTitle className="text-base font-bold text-foreground">
+                Última Consulta
+                {firstConsultation && (
+                  <span className="font-normal text-muted-foreground ml-2 text-sm">
+                    {new Date(
+                      firstConsultation.data_consulta,
+                    ).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
           </div>
-          <CardContent className="px-6">
-            <p className="text-lg">
-              <b>Motivo:</b>{" "}
-              {firstConsultation ? firstConsultation.motivo_consulta : "N/A"}
-            </p>
-            <p className="text-lg">
-              <b>Diagnóstico:</b>{" "}
-              {firstConsultation ? firstConsultation.diagnostico : "N/A"}
-            </p>
-            <p className="text-lg">
-              <b>Prescrição:</b>{" "}
-              {firstConsultation ? firstConsultation.prescricao : "N/A"}
-            </p>
-            <p className="text-lg">
-              <b>Observações:</b>{" "}
-              {firstConsultation ? firstConsultation.anotacoes_medicas : "N/A"}
-            </p>
+          <CardContent className="px-6 pt-4 space-y-2 text-sm">
+            {firstConsultation ? (
+              <>
+                <div>
+                  <span className="font-semibold">Motivo: </span>
+                  <span className="text-muted-foreground">
+                    {firstConsultation.motivo_consulta}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Diagnóstico: </span>
+                  <span className="text-muted-foreground">
+                    {firstConsultation.diagnostico}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Prescrição: </span>
+                  <span className="text-muted-foreground">
+                    {firstConsultation.prescricao}
+                  </span>
+                </div>
+                {firstConsultation.anotacoes_medicas && (
+                  <div>
+                    <span className="font-semibold">Observações: </span>
+                    <span className="text-muted-foreground">
+                      {firstConsultation.anotacoes_medicas}
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-muted-foreground">
+                Nenhuma consulta registrada.
+              </p>
+            )}
           </CardContent>
         </Card>
       </section>
 
-      {/* Summary and History Medical Information */}
+      {/* Medical History & AI Summary */}
       <section className="flex flex-wrap gap-3 mb-5">
         <Card className="flex-1 min-w-[200px] border-none shadow-md">
-          <div className="pb-4 border-b border-border">
+          <div className="pb-2 border-b border-border">
             <CardHeader>
-              <h2 className="text-bold font-bold text-foreground">
+              <CardTitle className="text-base font-bold text-foreground">
                 Histórico Médico
-              </h2>
+              </CardTitle>
             </CardHeader>
           </div>
-          <CardContent className="px-6">
+          <CardContent className="px-6 pt-4">
             {consultations?.length > 0 ? (
               consultations.map((consultation) => (
                 <div
                   key={consultation.id}
                   className="mb-4 last:mb-0 flex flex-col border-b border-border pb-2"
                 >
-                  <h3 className="font-bold text-cyan-400">
+                  <h3 className="font-semibold text-primary text-sm">
                     {consultation.motivo_consulta}
                   </h3>
-                  <p>{formatDateTime(consultation.data_consulta)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateTime(consultation.data_consulta)}
+                  </p>
                 </div>
               ))
             ) : (
-              <p>Nenhuma consulta registrada.</p>
+              <p className="text-sm text-muted-foreground">
+                Nenhuma consulta registrada.
+              </p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="flex-1 min-w-[200px] border-b border-cyan-500 shadow-md bg-cyan-100">
-          <div className="pb-4 border-b border-cyan-500 border-border">
+        <Card className="flex-1 min-w-[200px] border-none shadow-md border-l-2 border-l-primary">
+          <div className="pb-2 border-b border-border">
             <CardHeader>
-              <h2 className="text-bold font-bold text-foreground">Resumo IA</h2>
+              <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Resumo IA
+              </CardTitle>
             </CardHeader>
           </div>
-          <CardContent className="px-6" style={{ whiteSpace: "pre-line" }}>
-            {loadingResumo && <p>Carregando resumo...</p>}
-            {erroResumo && <p className="text-red-500">{erroResumo}</p>}
+          <CardContent className="px-6 pt-4" style={{ whiteSpace: "pre-line" }}>
+            {loadingResumo && (
+              <p className="text-sm text-muted-foreground animate-pulse">
+                Gerando resumo...
+              </p>
+            )}
+            {erroResumo && (
+              <p className="text-sm text-destructive">{erroResumo}</p>
+            )}
             {!loadingResumo && !erroResumo && isMounted && (
-              <p>{resumo.replace(/\*\*/g, "")}</p>
+              <p className="text-sm text-foreground">
+                {resumo.replace(/\*\*/g, "")}
+              </p>
             )}
           </CardContent>
         </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EHRSidebar } from "@/components/ehr-sidebar";
 import { PatientCard } from "@/components/patient-card";
@@ -10,7 +10,7 @@ import { ExamsList } from "@/components/exams-list";
 import { VaccinesList } from "@/components/vaccines-list";
 import { usePatientData } from "@/hooks/usePatientData";
 
-export default function EHRPage() {
+function EHRContent() {
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState("patient");
   const cpf = searchParams.get("cpf");
@@ -116,5 +116,21 @@ export default function EHRPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function EHRPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-background">
+          <p className="text-muted-foreground text-sm animate-pulse">
+            Carregando prontuário...
+          </p>
+        </div>
+      }
+    >
+      <EHRContent />
+    </Suspense>
   );
 }

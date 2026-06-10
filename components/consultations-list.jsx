@@ -343,7 +343,7 @@ export function ConsultationsList({
                     </p>
                     <p className="text-xs text-muted-foreground ml-6">
                       {consultation.profissional?.especialidade} -{" "}
-                      {consultation.profissional?.crm_coren}
+                      {consultation.profissional?.tipo_profissional}
                     </p>
                   </div>
                 </div>

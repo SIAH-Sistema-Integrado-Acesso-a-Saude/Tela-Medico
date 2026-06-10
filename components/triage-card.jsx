@@ -60,14 +60,14 @@ export function TriageCard({ patient, triages, reloadTriages }) {
   };
 
   const initialValues = {
-    id_usuario: patient.id,
-    pressao_arterial: "",
-    temperatura: "",
-    frequencia_cardiaca: "",
-    peso: "",
-    altura: "",
-    queixa_principal: "",
-    data_hora_triagem: "",
+    cpf: patient.cpf,
+    bloodPressure: "",
+    temperature: "",
+    heartRate: "",
+    weight: "",
+    height: "",
+    complaint: "",
+    dateScreening: "",
   };
 
   const {
@@ -81,9 +81,9 @@ export function TriageCard({ patient, triages, reloadTriages }) {
     onSubmit: (data) =>
       criarTriagem({
         ...data,
-        frequencia_cardiaca: parseInt(data.frequencia_cardiaca),
-        peso: parseFloat(data.peso),
-        altura: parseFloat(data.altura),
+        heartRate: parseInt(data.heartRate),
+        weight: parseFloat(data.weight),
+        height: parseFloat(data.height),
       }),
     onSuccess: async () => {
       await reloadTriages();
@@ -116,19 +116,19 @@ export function TriageCard({ patient, triages, reloadTriages }) {
               <div className="grid gap-4 md:grid-cols-2">
                 {/* Pressão Arterial */}
                 <div className="space-y-2">
-                  <Label htmlFor="pressao_arterial">
+                  <Label htmlFor="bloodPressure">
                     <Activity className="inline h-4 w-4 mr-1 text-primary" />
                     Pressão Arterial
                   </Label>
                   <Input
-                    id="pressao_arterial"
-                    name="pressao_arterial"
+                    id="bloodPressure"
+                    name="bloodPressure"
                     placeholder="120/80"
-                    value={formData.pressao_arterial}
+                    value={formData.bloodPressure}
                     onChange={(e) => {
                       const formatado = formatarPressaoArterial(e.target.value);
                       handleInputChange({
-                        target: { name: "pressao_arterial", value: formatado },
+                        target: { name: "bloodPressure", value: formatado },
                       });
                     }}
                     required
@@ -137,19 +137,19 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
                 {/* Temperatura */}
                 <div className="space-y-2">
-                  <Label htmlFor="temperatura">
+                  <Label htmlFor="temperature">
                     <Thermometer className="inline h-4 w-4 mr-1 text-primary" />
                     Temperatura
                   </Label>
                   <Input
-                    id="temperatura"
-                    name="temperatura"
+                    id="temperature"
+                    name="temperature"
                     placeholder="36.5°C"
-                    value={formData.temperatura}
+                    value={formData.temperature}
                     onChange={(e) => {
                       const formatado = formatarTemperatura(e.target.value);
                       handleInputChange({
-                        target: { name: "temperatura", value: formatado },
+                        target: { name: "temperature", value: formatado },
                       });
                     }}
                     required
@@ -158,16 +158,16 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
                 {/* Frequência Cardíaca */}
                 <div className="space-y-2">
-                  <Label htmlFor="frequencia_cardiaca">
+                  <Label htmlFor="heartRate">
                     <Heart className="inline h-4 w-4 mr-1 text-primary" />
                     Frequência Cardíaca (bpm)
                   </Label>
                   <Input
-                    id="frequencia_cardiaca"
-                    name="frequencia_cardiaca"
+                    id="heartRate"
+                    name="heartRate"
                     type="number"
                     placeholder="78"
-                    value={formData.frequencia_cardiaca}
+                    value={formData.heartRate}
                     onChange={handleInputChange}
                     required
                   />
@@ -175,17 +175,17 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
                 {/* Peso */}
                 <div className="space-y-2">
-                  <Label htmlFor="peso">
+                  <Label htmlFor="weight">
                     <Weight className="inline h-4 w-4 mr-1 text-primary" />
                     Peso (kg)
                   </Label>
                   <Input
-                    id="peso"
-                    name="peso"
+                    id="weight"
+                    name="weight"
                     type="number"
                     step="0.1"
                     placeholder="72.5"
-                    value={formData.peso}
+                    value={formData.weight}
                     onChange={handleInputChange}
                     required
                   />
@@ -193,17 +193,17 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
                 {/* Altura */}
                 <div className="space-y-2">
-                  <Label htmlFor="altura">
+                  <Label htmlFor="height">
                     <Ruler className="inline h-4 w-4 mr-1 text-primary" />
                     Altura (m)
                   </Label>
                   <Input
-                    id="altura"
-                    name="altura"
+                    id="height"
+                    name="height"
                     type="number"
                     step="0.01"
                     placeholder="1.65"
-                    value={formData.altura}
+                    value={formData.height}
                     onChange={handleInputChange}
                     required
                   />
@@ -211,15 +211,15 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
                 {/* Data e Hora da Triagem */}
                 <div className="space-y-2">
-                  <Label htmlFor="data_hora_triagem">
+                  <Label htmlFor="dateScreening">
                     <Clock className="inline h-4 w-4 mr-1 text-primary" />
                     Data e Hora
                   </Label>
                   <Input
-                    id="data_hora_triagem"
-                    name="data_hora_triagem"
+                    id="dateScreening"
+                    name="dateScreening"
                     type="datetime-local"
-                    value={formData.data_hora_triagem}
+                    value={formData.dateScreening}
                     onChange={handleInputChange}
                     required
                   />
@@ -228,15 +228,15 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
               {/* Queixa Principal */}
               <div className="space-y-2">
-                <Label htmlFor="queixa_principal">
+                <Label htmlFor="complaint">
                   <FileText className="inline h-4 w-4 mr-1 text-primary" />
                   Queixa Principal
                 </Label>
                 <Textarea
-                  id="queixa_principal"
-                  name="queixa_principal"
+                  id="complaint"
+                  name="complaint"
                   placeholder="Descreva os sintomas principais do paciente..."
-                  value={formData.queixa_principal}
+                  value={formData.complaint}
                   onChange={handleInputChange}
                   rows={3}
                 />
@@ -272,7 +272,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
 
       {triages?.length > 0 ? (
         triages.map((triage) => {
-          const bmi = calculateBMI(triage.peso, triage.altura);
+          const bmi = calculateBMI(triage.weight, triage.height);
           const bmiCategory = getBMICategory(bmi);
 
           return (
@@ -284,7 +284,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                   </CardTitle>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 text-primary" />
-                    <span>{formatDateTime(triage.data_hora_triagem)}</span>
+                    <span>{formatDateTime(triage.dateScreening)}</span>
                   </div>
                 </div>
               </CardHeader>
@@ -298,7 +298,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Pressão Arterial
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {triage.pressao_arterial}
+                        {triage.bloodPressure}
                       </p>
                     </div>
                   </div>
@@ -310,7 +310,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Temperatura
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {triage.temperatura}
+                        {triage.temperature}
                       </p>
                     </div>
                   </div>
@@ -322,7 +322,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Frequência Cardíaca
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {triage.frequencia_cardiaca} bpm
+                        {triage.heartRate} bpm
                       </p>
                     </div>
                   </div>
@@ -332,7 +332,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-muted-foreground mb-1">Peso</p>
                       <p className="text-sm font-semibold text-foreground">
-                        {triage.peso} kg
+                        {triage.weight} kg
                       </p>
                     </div>
                   </div>
@@ -344,7 +344,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Altura
                       </p>
                       <p className="text-sm font-semibold text-foreground">
-                        {triage.altura} m
+                        {triage.height} m
                       </p>
                     </div>
                   </div>
@@ -373,12 +373,12 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         Queixa Principal
                       </p>
                       <p className="text-sm text-foreground">
-                        {triage.queixa_principal}
+                        {triage.complaint}
                       </p>
                     </div>
                   </div>
 
-                  {triage.observacoes_enfermagem && (
+                  {/* {triage.observacoes_enfermagem && (
                     <div className="flex items-start gap-3">
                       <FileText className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
@@ -390,7 +390,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                         </p>
                       </div>
                     </div>
-                  )}
+                  )} */}
                 </div>
               </CardContent>
             </Card>

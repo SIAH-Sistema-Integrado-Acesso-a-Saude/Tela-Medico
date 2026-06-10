@@ -43,11 +43,11 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
   }, [searchQuery]);
 
   const initialValues = {
-    id_usuario: patient.id,
-    id_hospital: "",
-    id_profissional: "",
-    nome_vacina: "",
-    data_aplicacao: "",
+    cpf: patient.cpf,
+    idHospital: "",
+    idProfissional: "",
+    nomeVacina: "",
+    dataAplicacao: "",
     dose: "",
     lote: "",
   };
@@ -108,11 +108,11 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="id_profissional">Profissional *</Label>
+                  <Label htmlFor="idProfissional">Profissional *</Label>
                   <Select
-                    value={formData.id_profissional}
+                    value={formData.idProfissional}
                     onValueChange={(value) =>
-                      handleSelectChange("id_profissional", value)
+                      handleSelectChange("idProfissional", value)
                     }
                     disabled={isLoadingData}
                   >
@@ -128,7 +128,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                     <SelectContent>
                       {profissionais.map((prof) => (
                         <SelectItem key={prof.id} value={prof.id}>
-                          {prof.nome} - ({prof.crm_coren})
+                          {prof.nome} - ({prof.especialidade})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -136,11 +136,11 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="id_hospital">Hospital *</Label>
+                  <Label htmlFor="idHospital">Hospital *</Label>
                   <Select
-                    value={formData.id_hospital}
+                    value={formData.idHospital}
                     onValueChange={(value) =>
-                      handleSelectChange("id_hospital", value)
+                      handleSelectChange("idHospital", value)
                     }
                     disabled={isLoadingData}
                   >
@@ -156,7 +156,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                     <SelectContent>
                       {hospitais.map((hospital) => (
                         <SelectItem key={hospital.id} value={hospital.id}>
-                          {hospital.nome_hospital}
+                          {hospital.nomeHospital}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -164,11 +164,11 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="nome_vacina">Nome da Vacina *</Label>
+                  <Label htmlFor="nomeVacina">Nome da Vacina *</Label>
                   <Input
-                    id="nome_vacina"
-                    name="nome_vacina"
-                    value={formData.nome_vacina}
+                    id="nomeVacina"
+                    name="nomeVacina"
+                    value={formData.nomeVacina}
                     onChange={handleInputChange}
                     placeholder="Ex: Tetano, COVID-19, Influenza"
                     required
@@ -176,12 +176,12 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data_aplicacao">Data de Aplicação *</Label>
+                  <Label htmlFor="dataAplicacao">Data de Aplicação *</Label>
                   <Input
-                    id="data_aplicacao"
-                    name="data_aplicacao"
+                    id="dataAplicacao"
+                    name="dataAplicacao"
                     type="datetime-local"
-                    value={formData.data_aplicacao}
+                    value={formData.dataAplicacao}
                     onChange={handleInputChange}
                     required
                   />
@@ -246,7 +246,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                 <div className="flex items-center gap-3">
                   <Syringe className="h-5 w-5 text-primary flex-shrink-0" />
                   <CardTitle className="text-lg text-foreground">
-                    {vaccine.nome_vacina}
+                    {vaccine.nomeVacina}
                   </CardTitle>
                 </div>
                 {vaccine.dose && (
@@ -264,7 +264,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                       Data de Aplicação
                     </p>
                     <p className="text-sm font-medium text-foreground">
-                      {formatDate(vaccine.data_aplicacao)}
+                      {formatDate(vaccine.dataAplicacao)}
                     </p>
                   </div>
                 </div>
@@ -284,7 +284,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground mb-1">Local</p>
                     <p className="text-sm font-medium text-foreground">
-                      {vaccine.hospital?.nome_hospital}
+                      {vaccine.hospital?.nomeHospital}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {vaccine.hospital?.cidade} - {vaccine.hospital?.estado}
@@ -302,7 +302,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                       {vaccine.profissional?.nome}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {vaccine.profissional?.crm_coren}
+                      {vaccine.profissional?.especialidade}
                     </p>
                   </div>
                 </div>

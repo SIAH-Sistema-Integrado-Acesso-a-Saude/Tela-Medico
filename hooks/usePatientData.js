@@ -26,9 +26,13 @@ export function usePatientData(cpf) {
         // Todos os fetches em paralelo — não espera um terminar para iniciar o próximo
         return Promise.all([
           getConsultasPorIdUsuario(user.id),
-          getTriagensPorIdUsuario(user.id),
+          getTriagensPorCPF(user.cpf),
           getExamesPorIdUsuario(user.id),
-          getVacinasPorIdUsuario(user.id),
+          getVacinasPorCPF(user.cpf),
+          // getConsultasPorIdUsuario(user.cpf),
+          // getTriagensPorIdUsuario(user.cpf),
+          // getExamesPorIdUsuario(user.cpf),
+          // getVacinasPorIdUsuario(user.cpf),
         ]);
       })
       .then(([c, t, e, v]) => {
@@ -50,7 +54,7 @@ const reloadConsultas = useCallback(async (pesquisa = "") => {
 
   const reloadTriagens = useCallback(async (pesquisa = "") => {
     if (!patient?.id) return;
-    setTriagens(await getTriagensPorIdUsuario(patient.id, pesquisa));
+    setTriagens(await getTriagensPorCPF(patient.cpf, pesquisa));
   }, [patient?.id]);
 
   const reloadExames = useCallback(async (pesquisa = "") => {
@@ -60,7 +64,7 @@ const reloadConsultas = useCallback(async (pesquisa = "") => {
 
   const reloadVacinas = useCallback(async (pesquisa = "") => {
     if (!patient?.id) return;
-    setVacinas(await getVacinasPorIdUsuario(patient.id, pesquisa));
+    setVacinas(await getVacinasPorCPF(patient.cpf, pesquisa));
   }, [patient?.id]);
 
   return {

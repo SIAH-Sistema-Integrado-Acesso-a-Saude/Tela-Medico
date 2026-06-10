@@ -42,7 +42,7 @@ export function PatientCard({ patient, triages, consultations }) {
   useEffect(() => {
     async function fetchResumo() {
       const cachedResumo = sessionStorage.getItem(
-        `resumo_paciente_${patient.id}`,
+        `resumo_paciente_${patient.cpf}`,
       );
       if (cachedResumo) {
         setResumo(cachedResumo);
@@ -52,11 +52,12 @@ export function PatientCard({ patient, triages, consultations }) {
       setErroResumo("");
       try {
         const prontuario = { patient, triages, consultations };
-        const resposta = await resumoIA(prontuario);
+        //const resposta = await resumoIA(prontuario);
+        const resposta = await resumoIA(patient.cpf);
         const textoFinal =
           resposta.resposta || resposta || "Resumo não disponível";
         setResumo(textoFinal);
-        sessionStorage.setItem(`resumo_paciente_${patient.id}`, textoFinal);
+        sessionStorage.setItem(`resumo_paciente_${patient.cpf}`, textoFinal);
       } catch (err) {
         setErroResumo("Erro ao obter resumo da IA");
       } finally {
@@ -64,10 +65,10 @@ export function PatientCard({ patient, triages, consultations }) {
       }
     }
 
-    if (patient.id) {
+    if (patient.cpf) {
       fetchResumo();
     }
-  }, [patient.id]);
+  }, [patient.cpf]);
 
   useEffect(() => {
     if (patient.images?.length > 0) {

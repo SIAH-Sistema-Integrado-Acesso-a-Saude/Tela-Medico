@@ -132,7 +132,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.bloodPressure : "N/A"}
+              {firstTriage ? `${firstTriage.bloodPressure}mmHg` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -146,7 +146,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.temperature : "N/A"}
+              {firstTriage ? `${firstTriage.temperature}°C` : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -160,7 +160,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.heartRate : "N/A"} bpm
+              {firstTriage ? `${firstTriage.heartRate}bpm` : "N/A"}
             </p>
           </CardContent>
         </Card>

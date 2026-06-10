@@ -286,7 +286,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-muted-foreground mb-1">Local</p>
                     <p className="text-sm font-medium text-foreground">
-                      {vaccine.hospital?.nomeHospital}
+                      {vaccine.hospital?.nameHospital}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {vaccine.hospital?.cidade} - {vaccine.hospital?.estado}
@@ -301,10 +301,10 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                       Aplicado por
                     </p>
                     <p className="text-sm font-medium text-foreground">
-                      {vaccine.profissional?.nome}
+                      {vaccine.doutor?.nome}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {vaccine.profissional?.especialidade}
+                      {vaccine.doutor?.especialidade}
                     </p>
                   </div>
                 </div>

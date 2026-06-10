@@ -123,6 +123,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                             ? "Carregando..."
                             : "Selecione um profissional"
                         }
+                        required
                       />
                     </SelectTrigger>
                     <SelectContent>
@@ -143,6 +144,7 @@ export function VaccinesList({ patient, vaccines, reloadVacinas }) {
                       handleSelectChange("idHospital", value)
                     }
                     disabled={isLoadingData}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue

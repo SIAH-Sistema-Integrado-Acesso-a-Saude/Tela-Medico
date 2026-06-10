@@ -1,10 +1,10 @@
 // hooks/usePatientData.js
 import { useState, useEffect, useCallback } from "react";
 import { getUsuarioPorCPF } from "@/lib/usuarios";
-import { getConsultasPorIdUsuario } from "@/lib/consultas";
-import { getTriagensPorIdUsuario } from "@/lib/triagens";
-import { getExamesPorIdUsuario } from "@/lib/exames";
-import { getVacinasPorIdUsuario } from "@/lib/vacinas";
+import { getConsultasPorCPF } from "@/lib/consultas";
+import { getTriagensPorCPF } from "@/lib/triagens";
+import { getExamesPorCPF } from "@/lib/exames";
+import { getVacinasPorCPF } from "@/lib/vacinas";
 
 export function usePatientData(cpf) {
   const [patient, setPatient] = useState(null);
@@ -25,9 +25,9 @@ export function usePatientData(cpf) {
         setPatient(user);
         // Todos os fetches em paralelo — não espera um terminar para iniciar o próximo
         return Promise.all([
-          getConsultasPorIdUsuario(user.id),
+          getConsultasPorCPF(user.cpf),
           getTriagensPorCPF(user.cpf),
-          getExamesPorIdUsuario(user.id),
+          getExamesPorCPF(user.cpf),
           getVacinasPorCPF(user.cpf),
           // getConsultasPorIdUsuario(user.cpf),
           // getTriagensPorIdUsuario(user.cpf),
@@ -49,7 +49,7 @@ export function usePatientData(cpf) {
   // a cada render, evitando re-renders desnecessários nos filhos
 const reloadConsultas = useCallback(async (pesquisa = "") => {
   if (!patient?.id) return;
-  setConsultas(await getConsultasPorIdUsuario(patient.id, pesquisa));
+  setConsultas(await getConsultasPorCPF(patient.cpf, pesquisa));
 }, [patient?.id]);
 
   const reloadTriagens = useCallback(async (pesquisa = "") => {
@@ -59,7 +59,7 @@ const reloadConsultas = useCallback(async (pesquisa = "") => {
 
   const reloadExames = useCallback(async (pesquisa = "") => {
     if (!patient?.id) return;
-    setExames(await getExamesPorIdUsuario(patient.id, pesquisa));
+    setExames(await getExamesPorCPF(patient.cpf, pesquisa));
   }, [patient?.id]);
 
   const reloadVacinas = useCallback(async (pesquisa = "") => {

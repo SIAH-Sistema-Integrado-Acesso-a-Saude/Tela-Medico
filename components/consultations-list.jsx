@@ -50,14 +50,14 @@ export function ConsultationsList({
   const [isLoadingData, setIsLoadingData] = useState(false);
 
   const initialValues = {
-    id_usuario: patient.id,
-    id_profissional: "",
-    id_hospital: "",
-    data_consulta: "",
-    motivo_consulta: "",
-    diagnostico: "",
-    prescricao: "",
-    anotacoes_medicas: "",
+    idPacient: patient.id,
+    idDoctor: "",
+    idHospital: "",
+    date: "",
+    reason: "",
+    finalDiagnosis: "",
+    medications: "",
+    observations: "",
   };
 
   const {
@@ -68,7 +68,7 @@ export function ConsultationsList({
     isSubmitting,
   } = useEntityForm({
     initialValues,
-    onSubmit: (data) => criarConsulta(data),
+    onSubmit: (data) => criarConsulta(data, patient.cpf),
     onSuccess: async () => {
       await reloadConsultations();
       setIsDialogOpen(false);
@@ -129,13 +129,14 @@ export function ConsultationsList({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="id_profissional">Profissional *</Label>
+                  <Label htmlFor="idDoctor">Profissional *</Label>
                   <Select
-                    value={formData.id_profissional}
+                    value={formData.idDoctor}
                     onValueChange={(value) =>
-                      handleSelectChange("id_profissional", value)
+                      handleSelectChange("idDoctor", value)
                     }
                     disabled={isLoadingData}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
@@ -149,7 +150,7 @@ export function ConsultationsList({
                     <SelectContent>
                       {profissionais.map((prof) => (
                         <SelectItem key={prof.id} value={prof.id}>
-                          {prof.nome} - ({prof.crm_coren})
+                          {prof.nome} - ({prof.especialidade})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -157,13 +158,14 @@ export function ConsultationsList({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="id_hospital">Hospital *</Label>
+                  <Label htmlFor="idHospital">Hospital *</Label>
                   <Select
-                    value={formData.id_hospital}
+                    value={formData.idHospital}
                     onValueChange={(value) =>
-                      handleSelectChange("id_hospital", value)
+                      handleSelectChange("idHospital", value)
                     }
                     disabled={isLoadingData}
+                    required
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
@@ -177,7 +179,7 @@ export function ConsultationsList({
                     <SelectContent>
                       {hospitais.map((hospital) => (
                         <SelectItem key={hospital.id} value={hospital.id}>
-                          {hospital.nome_hospital}
+                          {hospital.nomeHospital}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -185,12 +187,12 @@ export function ConsultationsList({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data_consulta">Data da Consulta *</Label>
+                  <Label htmlFor="date">Data da Consulta *</Label>
                   <Input
-                    id="data_consulta"
-                    name="data_consulta"
+                    id="date"
+                    name="date"
                     type="datetime-local"
-                    value={formData.data_consulta}
+                    value={formData.date}
                     onChange={handleInputChange}
                     required
                   />
@@ -198,11 +200,11 @@ export function ConsultationsList({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="motivo_consulta">Motivo da Consulta *</Label>
+                <Label htmlFor="reason">Motivo da Consulta *</Label>
                 <Input
-                  id="motivo_consulta"
-                  name="motivo_consulta"
-                  value={formData.motivo_consulta}
+                  id="reason"
+                  name="reason"
+                  value={formData.reason}
                   onChange={handleInputChange}
                   placeholder="Ex: Dor abdominal"
                   required
@@ -210,38 +212,41 @@ export function ConsultationsList({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="diagnostico">Diagnóstico</Label>
+                <Label htmlFor="finalDiagnosis">Diagnóstico</Label>
                 <Textarea
-                  id="diagnostico"
-                  name="diagnostico"
-                  value={formData.diagnostico}
+                  id="finalDiagnosis"
+                  name="finalDiagnosis"
+                  value={formData.finalDiagnosis}
                   onChange={handleInputChange}
                   placeholder="Descreva o diagnóstico..."
                   rows={3}
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="prescricao">Prescrição</Label>
+                <Label htmlFor="medications">Prescrição</Label>
                 <Textarea
-                  id="prescricao"
-                  name="prescricao"
-                  value={formData.prescricao}
+                  id="medications"
+                  name="medications"
+                  value={formData.medications}
                   onChange={handleInputChange}
                   placeholder="Descreva a prescrição médica..."
                   rows={3}
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="anotacoes_medicas">Anotações Médicas</Label>
+                <Label htmlFor="observations">Anotações Médicas</Label>
                 <Textarea
-                  id="anotacoes_medicas"
-                  name="anotacoes_medicas"
-                  value={formData.anotacoes_medicas}
+                  id="observations"
+                  name="observations"
+                  value={formData.observations}
                   onChange={handleInputChange}
                   placeholder="Anotações adicionais..."
                   rows={3}
+                  required
                 />
               </div>
 
@@ -288,16 +293,16 @@ export function ConsultationsList({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <CardTitle className="text-lg mb-2 text-foreground">
-                    {consultation.motivo_consulta}
+                    {consultation.reason}
                   </CardTitle>
                   <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4 text-primary" />
-                      <span>{formatDateTime(consultation.data_consulta)}</span>
+                      <span>{formatDateTime(consultation.date)}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <User className="h-4 w-4 text-primary" />
-                      <span>{consultation.profissional?.nome}</span>
+                      <span>{consultation.doctor?.name}</span>
                     </div>
                   </div>
                 </div>
@@ -322,12 +327,12 @@ export function ConsultationsList({
                       </h4>
                     </div>
                     <p className="text-sm text-muted-foreground ml-6">
-                      {consultation.hospital?.nome_hospital}
+                      {consultation.hospital?.nameHospital}
                     </p>
                     <p className="text-xs text-muted-foreground ml-6">
-                      {consultation.hospital?.endereco},{" "}
-                      {consultation.hospital?.cidade} -{" "}
-                      {consultation.hospital?.estado}
+                      {consultation.hospital?.street},{" "}
+                      {consultation.hospital?.city} -{" "}
+                      {consultation.hospital?.state}
                     </p>
                   </div>
 
@@ -339,11 +344,11 @@ export function ConsultationsList({
                       </h4>
                     </div>
                     <p className="text-sm text-muted-foreground ml-6">
-                      {consultation.profissional?.nome}
+                      {consultation.doctor?.name}
                     </p>
                     <p className="text-xs text-muted-foreground ml-6">
-                      {consultation.profissional?.especialidade} -{" "}
-                      {consultation.profissional?.tipo_profissional}
+                      {consultation.doctor?.specialty} -{" "}
+                      {consultation.doctor?.typeProfissional}
                     </p>
                   </div>
                 </div>
@@ -356,7 +361,7 @@ export function ConsultationsList({
                     </h4>
                   </div>
                   <p className="text-sm text-muted-foreground ml-6 whitespace-pre-line">
-                    {consultation.diagnostico}
+                    {consultation.finalDiagnosis}
                   </p>
                 </div>
 
@@ -369,18 +374,18 @@ export function ConsultationsList({
                   </div>
                   <div className="ml-6 bg-muted/50 p-3 rounded-lg">
                     <p className="text-sm text-foreground font-mono whitespace-pre-line">
-                      {consultation.prescricao}
+                      {consultation.medications[0].name || "Nenhuma"}
                     </p>
                   </div>
                 </div>
 
-                {consultation.anotacoes_medicas && (
+                {consultation.observations && (
                   <div className="pt-3 border-t border-border">
                     <h4 className="font-semibold text-sm mb-2 text-foreground">
                       Anotações Médicas
                     </h4>
                     <p className="text-sm text-muted-foreground ml-6 whitespace-pre-line">
-                      {consultation.anotacoes_medicas}
+                      {consultation.observations}
                     </p>
                   </div>
                 )}

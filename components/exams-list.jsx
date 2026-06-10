@@ -37,11 +37,11 @@ export function ExamsList({ patient, exams, reloadExames }) {
   }, [searchQuery]);
 
   const initialValues = {
-    id_usuario: patient.id,
-    tipo_exame: "",
-    data_realizacao: "",
-    resultado_link: "",
-    nome_laboratorio: "",
+    idPacient: patient.id,
+    exam: "",
+    dateExam: "",
+    pdfUrl: "",
+    nameLaboratory: "",
   };
 
   const { formData, handleInputChange, handleSubmit, isSubmitting } =
@@ -78,11 +78,11 @@ export function ExamsList({ patient, exams, reloadExames }) {
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="tipo_exame">Tipo de Exame *</Label>
+                  <Label htmlFor="exam">Tipo de Exame *</Label>
                   <Input
-                    id="tipo_exame"
-                    name="tipo_exame"
-                    value={formData.tipo_exame}
+                    id="exam"
+                    name="exam"
+                    value={formData.exam}
                     onChange={handleInputChange}
                     placeholder="Ex: Radiografia, Hemograma, etc."
                     required
@@ -90,25 +90,23 @@ export function ExamsList({ patient, exams, reloadExames }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="data_realizacao">Data de Realização *</Label>
+                  <Label htmlFor="dateExam">Data de Realização *</Label>
                   <Input
-                    id="data_realizacao"
-                    name="data_realizacao"
+                    id="dateExam"
+                    name="dateExam"
                     type="datetime-local"
-                    value={formData.data_realizacao}
+                    value={formData.dateExam}
                     onChange={handleInputChange}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="nome_laboratorio">
-                    Nome do Laboratório *
-                  </Label>
+                  <Label htmlFor="nameLaboratory">Nome do Laboratório *</Label>
                   <Input
-                    id="nome_laboratorio"
-                    name="nome_laboratorio"
-                    value={formData.nome_laboratorio}
+                    id="nameLaboratory"
+                    name="nameLaboratory"
+                    value={formData.nameLaboratory}
                     onChange={handleInputChange}
                     placeholder="Ex: Laboratório Santa Tereza"
                     required
@@ -116,14 +114,12 @@ export function ExamsList({ patient, exams, reloadExames }) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="resultado_link">
-                    Link do Resultado (Opcional)
-                  </Label>
+                  <Label htmlFor="pdfUrl">Link do Resultado (Opcional)</Label>
                   <Input
-                    id="resultado_link"
-                    name="resultado_link"
+                    id="pdfUrl"
+                    name="pdfUrl"
                     type="url"
-                    value={formData.resultado_link}
+                    value={formData.pdfUrl}
                     onChange={handleInputChange}
                     placeholder="https://exemplo.com/resultado.pdf"
                   />
@@ -166,10 +162,10 @@ export function ExamsList({ patient, exams, reloadExames }) {
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-primary flex-shrink-0" />
                   <CardTitle className="text-lg text-foreground">
-                    {exam.tipo_exame}
+                    {exam.exam}
                   </CardTitle>
                 </div>
-                {exam.resultado_link && (
+                {exam.pdfUrl && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -177,7 +173,7 @@ export function ExamsList({ patient, exams, reloadExames }) {
                     asChild
                   >
                     <a
-                      href={exam.resultado_link}
+                      href={exam.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -198,7 +194,7 @@ export function ExamsList({ patient, exams, reloadExames }) {
                       Data de Realização
                     </p>
                     <p className="text-sm font-medium text-foreground">
-                      {formatDate(exam.data_realizacao)}
+                      {formatDate(exam.dateExam)}
                     </p>
                   </div>
                 </div>
@@ -210,7 +206,7 @@ export function ExamsList({ patient, exams, reloadExames }) {
                       Laboratório
                     </p>
                     <p className="text-sm font-medium text-foreground">
-                      {exam.nome_laboratorio}
+                      {exam.nameLaboratory}
                     </p>
                   </div>
                 </div>

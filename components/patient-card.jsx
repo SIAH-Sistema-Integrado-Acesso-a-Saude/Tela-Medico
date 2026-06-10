@@ -20,12 +20,12 @@ import { resumoIA } from "../lib/resumo-ia";
 import { useState, useEffect } from "react";
 
 export function PatientCard({ patient, triages, consultations }) {
-  const age = calculateAge(patient.data_nascimento);
+  const age = calculateAge(patient.dataNascimento);
   const firstTriage = triages && triages.length > 0 ? triages[0] : null;
   const firstConsultation =
     consultations && consultations.length > 0 ? consultations[0] : null;
   const bmi = firstTriage
-    ? calculateBMI(firstTriage.peso, firstTriage.altura)
+    ? calculateBMI(firstTriage.weight, firstTriage.height)
     : "N/A";
   const bmiCategory = getBMICategory(bmi);
 
@@ -51,11 +51,15 @@ export function PatientCard({ patient, triages, consultations }) {
       setLoadingResumo(true);
       setErroResumo("");
       try {
-        const prontuario = { patient, triages, consultations };
         //const resposta = await resumoIA(prontuario);
         const resposta = await resumoIA(patient.cpf);
         const textoFinal =
-          resposta.resposta || resposta || "Resumo não disponível";
+          resposta.summary.clinical_summary || "Resumo não disponível";
+
+        // Garante que só salva string no cache
+        if (typeof textoFinal === "string") {
+          sessionStorage.setItem(`resumo_paciente_${patient.cpf}`, textoFinal);
+        }
         setResumo(textoFinal);
         sessionStorage.setItem(`resumo_paciente_${patient.cpf}`, textoFinal);
       } catch (err) {
@@ -109,7 +113,7 @@ export function PatientCard({ patient, triages, consultations }) {
                 {patient.nome}
               </p>
               <p className="text-xs text-muted-foreground">
-                {new Date(patient.data_nascimento).toLocaleDateString("pt-BR")}
+                {new Date(patient.dataNascimento).toLocaleDateString("pt-BR")}
               </p>
               <p className="text-sm font-medium text-foreground">{age} anos</p>
             </div>
@@ -128,7 +132,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.pressao_arterial : "N/A"}
+              {firstTriage ? firstTriage.bloodPressure : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -142,7 +146,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.temperatura : "N/A"}
+              {firstTriage ? firstTriage.temperature : "N/A"}
             </p>
           </CardContent>
         </Card>
@@ -156,7 +160,7 @@ export function PatientCard({ patient, triages, consultations }) {
           </CardHeader>
           <CardContent className="px-6 pb-4">
             <p className="text-base font-medium">
-              {firstTriage ? firstTriage.frequencia_cardiaca : "N/A"} bpm
+              {firstTriage ? firstTriage.heartRate : "N/A"} bpm
             </p>
           </CardContent>
         </Card>
@@ -199,28 +203,28 @@ export function PatientCard({ patient, triages, consultations }) {
             <div>
               <span className="font-semibold">Tipo Sanguíneo: </span>
               <span className="text-muted-foreground">
-                {patient.tipo_sanguineo || "—"}
+                {patient.tipoSanguineo || "—"}
               </span>
             </div>
             <div>
               <span className="font-semibold">Condições Crônicas: </span>
               <span className="text-muted-foreground">
-                {patient.condicoes_cronicas || "Nenhuma"}
+                {patient.condicoesCronicas || "Nenhuma"}
               </span>
             </div>
             <div>
-              <span className="font-semibold">Medicamentos em Uso: </span>
+              <span className="font-semibold">Plano de Saúde: </span>
               <span className="text-muted-foreground">
-                {patient.medicamentos_em_uso || "Nenhum"}
+                {patient.nomePlano || "Nenhum"}
               </span>
             </div>
             <div>
               <span className="font-semibold">Plano de Saúde: </span>
               <Badge
-                variant={patient.possui_plano_saude ? "default" : "secondary"}
+                variant={patient.possuiPlanoSaude ? "default" : "secondary"}
                 className="text-xs ml-1"
               >
-                {patient.possui_plano_saude ? "SIM" : "NÃO"}
+                {patient.possuiPlanoSaude ? "SIM" : "NÃO"}
               </Badge>
             </div>
           </CardContent>
@@ -233,9 +237,9 @@ export function PatientCard({ patient, triages, consultations }) {
                 Última Consulta
                 {firstConsultation && (
                   <span className="font-normal text-muted-foreground ml-2 text-sm">
-                    {new Date(
-                      firstConsultation.data_consulta,
-                    ).toLocaleDateString("pt-BR")}
+                    {new Date(firstConsultation.date).toLocaleDateString(
+                      "pt-BR",
+                    )}
                   </span>
                 )}
               </CardTitle>
@@ -247,26 +251,26 @@ export function PatientCard({ patient, triages, consultations }) {
                 <div>
                   <span className="font-semibold">Motivo: </span>
                   <span className="text-muted-foreground">
-                    {firstConsultation.motivo_consulta}
+                    {firstConsultation.reason}
                   </span>
                 </div>
                 <div>
                   <span className="font-semibold">Diagnóstico: </span>
                   <span className="text-muted-foreground">
-                    {firstConsultation.diagnostico}
+                    {firstConsultation.finalDiagnosis}
                   </span>
                 </div>
                 <div>
                   <span className="font-semibold">Prescrição: </span>
                   <span className="text-muted-foreground">
-                    {firstConsultation.prescricao}
+                    {firstConsultation.medications[0].name || "Nenhuma"}
                   </span>
                 </div>
-                {firstConsultation.anotacoes_medicas && (
+                {firstConsultation.observations && (
                   <div>
                     <span className="font-semibold">Observações: </span>
                     <span className="text-muted-foreground">
-                      {firstConsultation.anotacoes_medicas}
+                      {firstConsultation.observations}
                     </span>
                   </div>
                 )}
@@ -298,10 +302,10 @@ export function PatientCard({ patient, triages, consultations }) {
                   className="mb-4 last:mb-0 flex flex-col border-b border-border pb-2"
                 >
                   <h3 className="font-semibold text-primary text-sm">
-                    {consultation.motivo_consulta}
+                    {consultation.reason}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    {formatDateTime(consultation.data_consulta)}
+                    {formatDateTime(consultation.date)}
                   </p>
                 </div>
               ))
@@ -332,9 +336,7 @@ export function PatientCard({ patient, triages, consultations }) {
               <p className="text-sm text-destructive">{erroResumo}</p>
             )}
             {!loadingResumo && !erroResumo && isMounted && (
-              <p className="text-sm text-foreground">
-                {resumo.replace(/\*\*/g, "")}
-              </p>
+              <p className="text-sm text-foreground">{resumo}</p>
             )}
           </CardContent>
         </Card>

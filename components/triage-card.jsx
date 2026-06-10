@@ -239,6 +239,7 @@ export function TriageCard({ patient, triages, reloadTriages }) {
                   value={formData.complaint}
                   onChange={handleInputChange}
                   rows={3}
+                  required
                 />
               </div>
 
